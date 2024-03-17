@@ -171,3 +171,39 @@ exports.saveReview = async function (req, res, next) {
     console.log(error);
   }
 };
+
+exports.deleteReview = async function (req, res, next) {
+  const { articleId } = req.query;
+  const { styleId } = req.body;
+
+  try {
+    const article = await Article.findById(articleId);
+    const newReviewList = [];
+
+    for (let i = 0; i < article.reviewList.length; i++) {
+      if (article.reviewList[i].styleId !== styleId) {
+        newReviewList.push(article.reviewList[i]);
+      }
+    }
+
+    article.reviewList = newReviewList;
+    const cleanedArticle = deleteHighlightedReview(
+      article.previewContent,
+      styleId,
+    );
+
+    article.previewContent = cleanedArticle;
+    article.editorContent = cleanedArticle;
+
+    await article.save();
+
+    return res.status(200).send({
+      result: "ok",
+      message: "Successfully deleted comment",
+      article,
+      cleanedArticle,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
