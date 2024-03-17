@@ -17,12 +17,18 @@ const reviewerSchema = new mongoose.Schema({
 });
 
 const articleSchema = new mongoose.Schema({
+  title: {
+    type: String,
+  },
   previewContent: {
     type: String,
   },
   editorContent: {
     type: String,
     required: true,
+  },
+  textContent: {
+    type: String,
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
