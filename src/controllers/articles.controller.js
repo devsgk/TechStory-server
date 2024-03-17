@@ -154,3 +154,20 @@ exports.sendEmail = async function (req, res, next) {
       res.status(500).send({ result: "error", message: error.message });
     });
 };
+
+exports.saveReview = async function (req, res, next) {
+  const { articleContent, articleId, commentObj } = req.body;
+
+  try {
+    const article = await Article.findById(articleId);
+    article.editorContent = articleContent;
+    article.previewContent = articleContent;
+    article.reviewList.push(commentObj);
+
+    await article.save();
+
+    res.status(200).send({ result: "ok", articleId: article._id });
+  } catch (error) {
+    console.log(error);
+  }
+};
