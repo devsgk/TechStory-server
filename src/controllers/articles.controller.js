@@ -1,24 +1,32 @@
 const Article = require("../models/Article");
 const User = require("../models/User");
 const nodemailer = require("nodemailer");
+const {
+  deleteHighlightedReview,
+  deleteAllHighlightedReviews,
+} = require("../utils/deleteHighlightedReview");
 
 exports.saveArticle = async function (req, res, next) {
-  const { user, articleContent, articleId } = req.body;
+  const { user, articleContent, articleId, textContent, title } = req.body;
 
   try {
     if (articleId) {
       const article = await Article.findById(articleId);
 
+      article.title = title;
       article.editorContent = articleContent;
       article.previewContent = articleContent;
+      article.textContent = textContent;
 
       await article.save();
 
       res.status(200).send({ result: "ok", articleId: article._id });
     } else {
       const newArticle = new Article({
+        title: title,
         previewContent: articleContent,
         editorContent: articleContent,
+        textContent: textContent,
         author: user,
       });
 
@@ -38,10 +46,12 @@ exports.getArticle = async function (req, res, next) {
   const { articleId } = req.query;
 
   try {
-    const article = await Article.findById(articleId);
+    const article = await Article.findById(articleId).populate("author");
+
+    const cleanedArticle = deleteAllHighlightedReviews(article.previewContent);
 
     if (article) {
-      res.status(200).json({ result: "ok", article });
+      res.status(200).json({ result: "ok", article, cleanedArticle });
     } else {
       res.status(404).send({ result: "fail", message: "Article not found" });
     }
@@ -51,7 +61,6 @@ exports.getArticle = async function (req, res, next) {
 };
 
 exports.sendEmail = async function (req, res, next) {
-  console.log("send email request");
   const { emailList, url, articleId } = req.body;
 
   const article = await Article.findById(articleId);
