@@ -273,3 +273,17 @@ exports.approveArticle = async function (req, res, next) {
     console.log(error);
   }
 };
+
+exports.publishArticle = async function (req, res, next) {
+  const { articleId } = req.params;
+
+  try {
+    await Article.updateOne(
+      { _id: articleId },
+      { $set: { isPublished: true } },
+    );
+    res.status(200).send({ result: "ok", message: "Successfully published" });
+  } catch (error) {
+    console.log(error);
+  }
+};
