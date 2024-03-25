@@ -94,6 +94,20 @@ exports.getArticle = async function (req, res, next) {
   }
 };
 
+exports.getAllArticles = async function (req, res, next) {
+  try {
+    const allArticles = await Article.find().populate("author");
+
+    if (allArticles.length) {
+      res.status(200).json({ result: "ok", allArticles });
+    } else {
+      res.status(200).send({ result: "no article", message: "No articles" });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 exports.sendEmail = async function (req, res, next) {
   const { emailList, url, articleId } = req.body;
 
