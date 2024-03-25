@@ -153,21 +153,21 @@ exports.sendEmail = async function (req, res, next) {
 
   await article.save();
 
-  const sendEmailPromises = emailList.map((el) => {
+  const sendEmailPromises = emailList.map((emailAddress) => {
     return new Promise((resolve, reject) => {
       const mailOptions = {
         from: process.env.EMAIL,
-        to: el,
+        to: emailAddress,
         subject: "Review request",
         text: `Please review my post. ${url}`,
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          console.log("Error sending email to " + email + ": ", error);
+          console.log(`Error sending email to ${emailAddress}: `, error);
           reject(error);
         } else {
-          console.log("Email sent to " + email + ": " + info.response);
+          console.log(`Email sent to ${emailAddress}: ` + info.response);
           resolve(info.response);
         }
       });
@@ -177,14 +177,12 @@ exports.sendEmail = async function (req, res, next) {
   Promise.all(sendEmailPromises)
     .then((responses) => {
       console.log("All emails sent successfully.");
-
       res
         .status(200)
         .send({ result: "ok", message: "Emails sent successfully" });
     })
     .catch((error) => {
       console.log("Error sending one or more emails: ", error);
-
       res.status(500).send({ result: "error", message: error.message });
     });
 };
@@ -207,8 +205,7 @@ exports.saveReview = async function (req, res, next) {
 };
 
 exports.deleteReview = async function (req, res, next) {
-  const { articleId } = req.query;
-  const { styleId } = req.body;
+  const { articleId, styleId } = req.body;
 
   try {
     const article = await Article.findById(articleId);
