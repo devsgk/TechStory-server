@@ -1,7 +1,6 @@
 const User = require("../models/User");
 
 exports.getAllArticles = async function (req, res, next) {
-  console.log("GET request to getAllArticles");
   const { userId } = req.params;
 
   try {
@@ -30,7 +29,6 @@ exports.getAllArticles = async function (req, res, next) {
 };
 
 exports.checkEmail = async function (req, res, next) {
-  console.log("GET request to checkUser");
   const { email } = req.query;
 
   try {
