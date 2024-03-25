@@ -6,6 +6,40 @@ const {
   deleteAllHighlightedReviews,
 } = require("../utils/deleteHighlightedReview");
 
+exports.deleteArticle = async function (req, res, next) {
+  const { articleId } = req.body;
+
+  try {
+    const article = await Article.findById(articleId);
+    const authorId = article.author;
+    const reviewers = article.reviewers;
+    const ids = [];
+
+    for (const reviewer of reviewers) {
+      ids.push(reviewer.user);
+    }
+
+    await Article.deleteOne({ _id: articleId });
+    await User.updateOne(
+      { _id: authorId },
+      { $pull: { authoredArticles: articleId } },
+    );
+
+    for (const id of ids) {
+      await User.updateOne(
+        { _id: id },
+        { $pull: { reviewedArticles: articleId } },
+      );
+    }
+
+    res
+      .status(200)
+      .send({ result: "ok", message: "Successfully deleted the article" });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 exports.saveArticle = async function (req, res, next) {
   const { user, articleContent, articleId, textContent, title } = req.body;
 
