@@ -287,3 +287,19 @@ exports.publishArticle = async function (req, res, next) {
     console.log(error);
   }
 };
+
+exports.cancelPublishArticle = async function (req, res, next) {
+  const { articleId } = req.params;
+
+  try {
+    await Article.updateOne(
+      { _id: articleId },
+      { $set: { isPublished: false } },
+    );
+    res
+      .status(200)
+      .send({ result: "ok", message: "Successfully cancelled publishing" });
+  } catch (error) {
+    console.log(error);
+  }
+};
