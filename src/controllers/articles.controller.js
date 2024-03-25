@@ -252,3 +252,24 @@ exports.deleteReview = async function (req, res, next) {
     console.log(error);
   }
 };
+
+exports.approveArticle = async function (req, res, next) {
+  const { articleId } = req.query;
+  const { user } = req.body;
+
+  try {
+    await Article.updateOne(
+      {
+        _id: articleId,
+        "reviewers.email": user.email,
+      },
+      { $set: { "reviewers.$.status": "approved" } },
+    );
+
+    res
+      .status(200)
+      .send({ result: "ok", message: "Status changed to approved" });
+  } catch (error) {
+    console.log(error);
+  }
+};
