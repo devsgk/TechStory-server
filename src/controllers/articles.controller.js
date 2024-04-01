@@ -178,10 +178,10 @@ exports.sendEmail = async function (req, res, next) {
 
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          console.log(`Error sending email to ${emailAddress}: `, error);
+          console.error(`Error sending email to ${emailAddress}: `, error);
           reject(error);
         } else {
-          console.log(`Email sent to ${emailAddress}: ` + info.response);
+          console.error(`Email sent to ${emailAddress}: ` + info.response);
           resolve(info.response);
         }
       });
@@ -190,13 +190,12 @@ exports.sendEmail = async function (req, res, next) {
 
   Promise.all(sendEmailPromises)
     .then((responses) => {
-      console.log("All emails sent successfully.");
       res
         .status(200)
         .send({ result: "ok", message: "Emails sent successfully" });
     })
     .catch((error) => {
-      console.log("Error sending one or more emails: ", error);
+      console.error("Error sending one or more emails: ", error);
       res.status(500).send({ result: "error", message: error.message });
     });
 };
