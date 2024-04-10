@@ -2,18 +2,24 @@ const {
   deleteArticle,
   saveArticle,
   getArticle,
+  getAllArticles,
 } = require("../controllers/articles.controller");
 const Article = require("../models/Article");
 const User = require("../models/User");
+const { sendEmail } = require("../controllers/articles.controller");
+const nodemailer = require("nodemailer");
+
+jest.mock("nodemailer");
 jest.mock("../models/Article");
 jest.mock("../models/User");
 
-const mockSend = jest.fn();
-const mockStatus = jest.fn(() => ({ send: mockSend }));
-const mockRes = { status: mockStatus };
-
 describe("Article Controller", () => {
+  let mockSend, mockStatus, mockRes;
+
   beforeEach(() => {
+    mockSend = jest.fn();
+    mockStatus = jest.fn(() => ({ send: mockSend }));
+    mockRes = { status: mockStatus };
     mockSend.mockClear();
     mockStatus.mockClear();
   });
@@ -71,6 +77,7 @@ describe("Article Controller", () => {
       });
     });
   });
+
   describe("saveArticle", () => {
     it("should save a new article", async () => {
       const req = {
@@ -142,6 +149,142 @@ describe("Article Controller", () => {
           result: "ok",
         }),
       );
+    });
+  });
+
+  describe("getArticle", () => {
+    it("should fetch an article and return it", async () => {
+      const req = {
+        query: {
+          articleId: "validArticleId123",
+        },
+      };
+
+      const mockArticle = {
+        _id: "validArticleId123",
+        title: "Test Article",
+        previewContent: "This is the preview content of the test article.",
+        author: {
+          displayName: "John Doe",
+          photoURL: "http://example.com/photo.jpg",
+        },
+      };
+
+      Article.findById.mockImplementation(() => ({
+        populate: jest.fn().mockResolvedValue(mockArticle),
+      }));
+
+      const cleanedArticle =
+        "This is the cleaned preview content of the test article.";
+
+      await getArticle(req, mockRes);
+
+      expect(Article.findById).toHaveBeenCalledWith("validArticleId123");
+      expect(mockStatus).toHaveBeenCalledWith(200);
+    });
+
+    it("should return a 404 status when the article does not exist", async () => {
+      const req = {
+        query: {
+          articleId: "nonExistentArticleId123",
+        },
+      };
+
+      Article.findById.mockResolvedValue(null);
+
+      await getArticle(req, mockRes);
+
+      expect(Article.findById).toHaveBeenCalledWith("nonExistentArticleId123");
+    });
+  });
+
+  describe("getAllArticles", () => {
+    beforeEach(() => {
+      mockSend.mockClear();
+      mockStatus.mockClear();
+      const mockRes = {
+        status: jest.fn(() => mockRes),
+        send: jest.fn(),
+      };
+    });
+
+    it("should fetch and return all articles when articles are present", async () => {
+      const req = {};
+      const mockArticles = [
+        { title: "Article 1", author: { displayName: "Author 1" } },
+        { title: "Article 2", author: { displayName: "Author 2" } },
+      ];
+
+      Article.find.mockImplementation(() => ({
+        populate: jest.fn().mockResolvedValue(mockArticles),
+      }));
+
+      await getAllArticles(req, mockRes);
+
+      expect(Article.find).toHaveBeenCalled();
+      expect(mockStatus).toHaveBeenCalledWith(200);
+    });
+
+    it("should return a message indicating no articles found when there are no articles", async () => {
+      const req = {};
+
+      Article.find.mockImplementation(() => ({
+        populate: jest.fn().mockResolvedValue([]),
+      }));
+
+      await getAllArticles(req, mockRes);
+
+      expect(Article.find).toHaveBeenCalled();
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockSend).toHaveBeenCalledWith({
+        result: "no article",
+        message: "No articles",
+      });
+    });
+
+    it("should handle errors gracefully", async () => {
+      const req = {};
+
+      Article.find.mockImplementation(() => ({
+        populate: jest.fn().mockRejectedValue(new Error("Database error")),
+      }));
+
+      await getAllArticles(req, mockRes);
+
+      expect(Article.find).toHaveBeenCalled();
+    });
+  });
+
+  describe("sendEmail", () => {
+    it("sends emails to new reviewers and updates article and user models without actual side effects", async () => {
+      nodemailer.createTransport.mockReturnValue({
+        sendMail: jest.fn().mockImplementation((mailOptions, callback) => {
+          callback(null, { response: "250 OK" });
+        }),
+      });
+      Article.findById.mockResolvedValue({
+        reviewers: [{ email: "existingReviewer@example.com" }],
+        save: jest.fn(),
+      });
+      User.findOne.mockResolvedValue({ _id: "user123" });
+      User.findByIdAndUpdate.mockResolvedValue({});
+
+      const req = {
+        body: {
+          emailList: ["newReviewer@example.com"],
+          url: "http://example.com/article",
+          articleId: "articleId123",
+        },
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      const next = jest.fn();
+
+      await sendEmail(req, res, next);
+
+      expect(nodemailer.createTransport().sendMail).toHaveBeenCalled();
     });
   });
 });
