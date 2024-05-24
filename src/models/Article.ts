@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose, { Schema, Model } from "mongoose";
+import { ArticleType } from "../types/types.js";
 
-const reviewerSchema = new mongoose.Schema({
+const reviewerSchema = new Schema({
   email: {
     type: String,
     required: true,
@@ -10,13 +11,13 @@ const reviewerSchema = new mongoose.Schema({
     default: "pending",
   },
   user: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
     default: null,
   },
 });
 
-const articleSchema = new mongoose.Schema({
+const articleSchema = new Schema({
   title: {
     type: String,
   },
@@ -31,7 +32,7 @@ const articleSchema = new mongoose.Schema({
     type: String,
   },
   author: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
@@ -39,7 +40,12 @@ const articleSchema = new mongoose.Schema({
     type: [reviewerSchema],
   },
   reviewList: {
-    type: Array,
+    type: [
+      {
+        styleId: { type: String, required: true },
+        comment: { type: String, required: true },
+      },
+    ],
   },
   isPublished: {
     type: Boolean,
@@ -51,4 +57,9 @@ const articleSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Article", articleSchema);
+const Article: Model<ArticleType> = mongoose.model<ArticleType>(
+  "Article",
+  articleSchema,
+);
+
+export default Article;

@@ -1,16 +1,20 @@
-const Article = require("../models/Article");
-const User = require("../models/User");
-const nodemailer = require("nodemailer");
-const {
+import { Request, Response, NextFunction } from "express";
+
+import Article from "../models/Article.js";
+import User from "../models/User.js";
+import nodemailer from "nodemailer";
+import { ArticleType } from "../types/types.js";
+
+import {
   deleteHighlightedReview,
   deleteAllHighlightedReviews,
-} = require("../utils/deleteHighlightedReview");
+} from "../utils/deleteHighlightedReview.js";
 
-exports.deleteArticle = async function (req, res, next) {
+async function deleteArticle(req: Request, res: Response, next: NextFunction) {
   const { articleId } = req.body;
 
   try {
-    const article = await Article.findById(articleId);
+    const article = (await Article.findById(articleId)) as ArticleType;
     const authorId = article.author;
     const reviewers = article.reviewers;
     const ids = [];
@@ -38,9 +42,9 @@ exports.deleteArticle = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.saveArticle = async function (req, res, next) {
+async function saveArticle(req: Request, res: Response, next: NextFunction) {
   const { user, articleContent, articleId, textContent, title } = req.body;
 
   try {
@@ -74,9 +78,9 @@ exports.saveArticle = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.getArticle = async function (req, res, next) {
+async function getArticle(req: Request, res: Response, next: NextFunction) {
   const { articleId } = req.query;
 
   try {
@@ -92,9 +96,9 @@ exports.getArticle = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.getAllArticles = async function (req, res, next) {
+async function getAllArticles(req: Request, res: Response, next: NextFunction) {
   try {
     const allArticles = await Article.find().populate("author");
 
@@ -106,12 +110,12 @@ exports.getAllArticles = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.sendEmail = async function (req, res, next) {
+async function sendEmail(req: Request, res: Response, next: NextFunction) {
   const { emailList, url, articleId } = req.body;
 
-  const article = await Article.findById(articleId);
+  const article = (await Article.findById(articleId)) as ArticleType;
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     host: "smtp.gmail.com",
@@ -167,7 +171,7 @@ exports.sendEmail = async function (req, res, next) {
 
   await article.save();
 
-  const sendEmailPromises = emailList.map((emailAddress) => {
+  const sendEmailPromises = emailList.map((emailAddress: string) => {
     return new Promise((resolve, reject) => {
       const mailOptions = {
         from: process.env.EMAIL,
@@ -176,7 +180,7 @@ exports.sendEmail = async function (req, res, next) {
         text: `Please review my post. ${url}`,
       };
 
-      transporter.sendMail(mailOptions, (error, info) => {
+      transporter.sendMail(mailOptions, (error: any, info: any) => {
         if (error) {
           console.error(`Error sending email to ${emailAddress}: `, error);
           reject(error);
@@ -198,9 +202,9 @@ exports.sendEmail = async function (req, res, next) {
       console.error("Error sending one or more emails: ", error);
       res.status(500).send({ result: "error", message: error.message });
     });
-};
+}
 
-exports.saveReview = async function (req, res, next) {
+async function saveReview(req: Request, res: Response, next: NextFunction) {
   const { articleContent, articleId, commentObj } = req.body;
 
   try {
@@ -215,9 +219,9 @@ exports.saveReview = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.deleteReview = async function (req, res, next) {
+async function deleteReview(req: Request, res: Response, next: NextFunction) {
   const { articleId, styleId } = req.body;
 
   try {
@@ -250,9 +254,9 @@ exports.deleteReview = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.approveArticle = async function (req, res, next) {
+async function approveArticle(req: Request, res: Response, next: NextFunction) {
   const { articleId } = req.query;
   const { user } = req.body;
 
@@ -271,9 +275,9 @@ exports.approveArticle = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.publishArticle = async function (req, res, next) {
+async function publishArticle(req: Request, res: Response, next: NextFunction) {
   const { articleId } = req.params;
 
   try {
@@ -285,9 +289,13 @@ exports.publishArticle = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.cancelPublishArticle = async function (req, res, next) {
+async function cancelPublishArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { articleId } = req.params;
 
   try {
@@ -301,4 +309,19 @@ exports.cancelPublishArticle = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
+}
+
+const articlesController = {
+  deleteArticle,
+  saveArticle,
+  getArticle,
+  getAllArticles,
+  saveReview,
+  deleteReview,
+  sendEmail,
+  approveArticle,
+  publishArticle,
+  cancelPublishArticle,
 };
+
+export default articlesController;

@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-async function mongooseLoader() {
+export default async function mongooseLoader() {
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
       dbName: "techstory",
@@ -10,5 +10,3 @@ async function mongooseLoader() {
     console.error(error);
   }
 }
-
-module.exports = mongooseLoader;

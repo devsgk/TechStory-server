@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose, { Schema, Model } from "mongoose";
+import { UserType } from "../types/types.js";
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
   email: {
     type: String,
     required: true,
@@ -21,16 +22,18 @@ const userSchema = new mongoose.Schema({
   },
   authoredArticles: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Article",
     },
   ],
   reviewedArticles: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Article",
     },
   ],
 });
 
-module.exports = mongoose.model("User", userSchema);
+const User: Model<UserType> = mongoose.model<UserType>("User", userSchema);
+
+export default User;

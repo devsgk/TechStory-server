@@ -1,7 +1,8 @@
-const jsdom = require("jsdom");
+import jsdom from "jsdom";
+
 const { JSDOM } = jsdom;
 
-exports.deleteHighlightedReview = function (htmlString, styleId) {
+export function deleteHighlightedReview(htmlString, styleId) {
   const dom = new JSDOM(htmlString);
   const document = dom.window.document;
   const target = document.getElementById(styleId);
@@ -15,9 +16,9 @@ exports.deleteHighlightedReview = function (htmlString, styleId) {
   }
 
   return dom.window.document.body.innerHTML;
-};
+}
 
-exports.deleteAllHighlightedReviews = function (htmlString) {
+export function deleteAllHighlightedReviews(htmlString) {
   const dom = new JSDOM(htmlString);
   const document = dom.window.document;
 
@@ -27,4 +28,4 @@ exports.deleteAllHighlightedReviews = function (htmlString) {
   });
 
   return dom.window.document.body.innerHTML;
-};
+}

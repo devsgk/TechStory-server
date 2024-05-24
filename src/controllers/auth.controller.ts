@@ -1,12 +1,14 @@
-const User = require("../models/User");
-const {
+import { Request, Response, NextFunction } from "express";
+
+import User from "../models/User.js";
+import {
   generateAccessToken,
   generateRefreshToken,
-} = require("../utils/jwtUtils");
+} from "../utils/jwtUtils.js";
 
-const { ONE_HOUR_IN_MILLISECONDS } = require("../constants/jwtConstants");
+import { ONE_HOUR_IN_MILLISECONDS } from "../constants/jwtConstants.js";
 
-exports.logIn = async function (req, res, next) {
+async function logIn(req: Request, res: Response, next: NextFunction) {
   const { email, photoURL, displayName } = req.body;
 
   try {
@@ -36,16 +38,16 @@ exports.logIn = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.logOut = async function (req, res, next) {
+async function logOut(req: Request, res: Response, next: NextFunction) {
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
 
   res.send({ result: "ok", message: "logOut successful" });
-};
+}
 
-exports.check = async function (req, res, next) {
+async function check(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
     return res.status(200).json({ result: false });
   }
@@ -53,4 +55,12 @@ exports.check = async function (req, res, next) {
   const user = await User.findById(req.user).lean();
 
   return res.status(200).json({ result: true, user });
+}
+
+const authController = {
+  logIn,
+  logOut,
+  check,
 };
+
+export default authController;

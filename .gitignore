@@ -13,3 +13,6 @@ screenshot.png
 !.elasticbeanstalk/*.global.yml
 
 coverage
+dist/
+
+*.d.ts

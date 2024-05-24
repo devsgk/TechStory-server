@@ -1,6 +1,6 @@
-const express = require("express");
+import express from "express";
 
-const articlesController = require("../controllers/articles.controller");
+import articlesController from "../controllers/articles.controller.js";
 
 const router = express.Router();
 
@@ -17,4 +17,4 @@ router.post("/approve", articlesController.approveArticle);
 router.post("/:articleId/publish", articlesController.publishArticle);
 router.delete("/:articleId/publish", articlesController.cancelPublishArticle);
 
-module.exports = router;
+export default router;

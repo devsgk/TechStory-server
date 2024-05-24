@@ -1,6 +1,7 @@
-const createError = require("http-errors");
+import createError from "http-errors";
+import { Express } from "express";
 
-async function errorHandlerLoader(app) {
+export default async function errorHandlerLoader(app: Express) {
   app.use((req, res, next) => {
     next(createError(404));
   });
@@ -13,5 +14,3 @@ async function errorHandlerLoader(app) {
     res.json({ message: err.message });
   });
 }
-
-module.exports = errorHandlerLoader;

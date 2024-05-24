@@ -1,6 +1,8 @@
-const User = require("../models/User");
+import { Request, Response, NextFunction } from "express";
 
-exports.getAllArticles = async function (req, res, next) {
+import User from "../models/User.js";
+
+async function getAllArticles(req: Request, res: Response, next: NextFunction) {
   const { userId } = req.params;
 
   try {
@@ -26,9 +28,9 @@ exports.getAllArticles = async function (req, res, next) {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-exports.checkEmail = async function (req, res, next) {
+async function checkEmail(req: Request, res: Response, next: NextFunction) {
   const { email } = req.query;
 
   try {
@@ -47,4 +49,11 @@ exports.checkEmail = async function (req, res, next) {
       .status(500)
       .json({ result: "fail", message: "Internal server error." });
   }
+}
+
+const usersController = {
+  getAllArticles,
+  checkEmail,
 };
+
+export default usersController;
