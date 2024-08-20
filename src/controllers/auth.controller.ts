@@ -48,7 +48,7 @@ async function logOut(req: Request, res: Response, next: NextFunction) {
 }
 
 async function check(req: Request, res: Response, next: NextFunction) {
-  if (!req.user) {
+  if (!req?.user) {
     return res.status(200).json({ result: false });
   }
 
