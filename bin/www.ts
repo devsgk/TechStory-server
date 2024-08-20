@@ -4,7 +4,7 @@ import app from "../app.js";
 
 const debug = debugLib("ahchim-server:server");
 
-const port = normalizePort(process.env.PORT || "3000");
+const port = normalizePort(`${process.env.PORT}` || "8080");
 app.set("port", port);
 
 const server = http.createServer(app);
@@ -14,7 +14,7 @@ server.on("error", onError);
 server.on("listening", onListening);
 
 function normalizePort(val: string) {
-  const port = parseInt(val, 10);
+  const port = parseInt(String(val), 10);
 
   if (isNaN(port)) {
     return val;

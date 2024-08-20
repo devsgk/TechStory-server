@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "npx tsc",
-    "start": "node ./bin/www",
+    "start": "node ./dist/bin/www.js",
     "dev": "tsc -w & nodemon dist/bin/www.js",
     "postinstall": "",
     "test": "jest",
