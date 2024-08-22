@@ -52,6 +52,8 @@ async function verifyToken(
           res.status(201).cookie("accessToken", newAccessToken, {
             maxAge: ONE_HOUR_IN_MILLISECONDS,
             httpOnly: true,
+            secure: true,
+            sameSite: "none",
           });
 
           req.user = decodedToken.userId;
