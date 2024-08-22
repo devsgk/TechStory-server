@@ -6,7 +6,6 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./",
-    "typeRoots": ["./src/types", "./node_modules/@types"]
   },
   "include": ["src/**/*", "bin/**/*"],
   "exclude": ["node_modules", "./dist"]

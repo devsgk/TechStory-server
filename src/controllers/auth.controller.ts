@@ -1,13 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { JwtPayloadType } from "../types/types.js";
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JwtPayloadType["userId"];
-    }
-  }
-}
 
 import User from "../models/User.js";
 import {

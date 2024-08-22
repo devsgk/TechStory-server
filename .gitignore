@@ -14,5 +14,3 @@ screenshot.png
 
 coverage
 dist/
-
-*.d.ts
