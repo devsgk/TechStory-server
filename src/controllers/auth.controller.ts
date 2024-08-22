@@ -32,6 +32,8 @@ async function logIn(req: Request, res: Response, next: NextFunction) {
     res.status(201).cookie("accessToken", accessToken, {
       maxAge: ONE_HOUR_IN_MILLISECONDS,
       httpOnly: true,
+      secure: true,
+      sameSite: "none",
     });
 
     res.send({ result: "ok", message: "login successful!", user });
