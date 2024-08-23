@@ -1,23 +1,34 @@
-import { Request, Response, NextFunction } from "express";
-
 import Article from "../models/Article.js";
 import User from "../models/User.js";
 import nodemailer from "nodemailer";
-import { ArticleType } from "../types/types.js";
 
 import {
   deleteHighlightedReview,
   deleteAllHighlightedReviews,
 } from "../utils/deleteHighlightedReview.js";
 
-async function deleteArticle(req: Request, res: Response, next: NextFunction) {
+import { Request, Response, NextFunction } from "express";
+import { SentMessageInfo } from "nodemailer";
+import {
+  ArticleType,
+  CommentObjType,
+  Reviewer,
+  UserType,
+  UserStore,
+} from "../types/types.js";
+
+async function deleteArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   const { articleId } = req.body;
 
   try {
-    const article = (await Article.findById(articleId)) as ArticleType;
+    const article: ArticleType = await Article.findById(articleId);
     const authorId = article.author;
     const reviewers = article.reviewers;
-    const ids = [];
+    const ids: string[] = [];
 
     for (const reviewer of reviewers) {
       ids.push(reviewer.user);
@@ -44,12 +55,28 @@ async function deleteArticle(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function saveArticle(req: Request, res: Response, next: NextFunction) {
-  const { user, articleContent, articleId, textContent, title } = req.body;
+async function saveArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const {
+    user,
+    articleContent,
+    articleId,
+    textContent,
+    title,
+  }: {
+    user: UserType;
+    articleContent: string;
+    articleId: string;
+    textContent: string;
+    title: string;
+  } = req.body;
 
   try {
     if (articleId) {
-      const article = await Article.findById(articleId);
+      const article: ArticleType = await Article.findById(articleId);
 
       article.title = title;
       article.editorContent = articleContent;
@@ -60,7 +87,7 @@ async function saveArticle(req: Request, res: Response, next: NextFunction) {
 
       res.status(200).send({ result: "ok", articleId: article._id });
     } else {
-      const newArticle = new Article({
+      const newArticle: ArticleType = new Article({
         title: title,
         previewContent: articleContent,
         editorContent: articleContent,
@@ -80,13 +107,24 @@ async function saveArticle(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function getArticle(req: Request, res: Response, next: NextFunction) {
-  const { articleId } = req.query;
+interface QueryParams {
+  articleId?: string;
+}
+
+async function getArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const { articleId }: QueryParams = req.query;
 
   try {
-    const article = await Article.findById(articleId).populate("author");
+    const article: ArticleType =
+      await Article.findById(articleId).populate("author");
 
-    const cleanedArticle = deleteAllHighlightedReviews(article.previewContent);
+    const cleanedArticle: string = deleteAllHighlightedReviews(
+      article.previewContent,
+    );
 
     if (article) {
       res.status(200).json({ result: "ok", article, cleanedArticle });
@@ -98,9 +136,13 @@ async function getArticle(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function getAllArticles(req: Request, res: Response, next: NextFunction) {
+async function getAllArticles(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
-    const allArticles = await Article.find().populate("author");
+    const allArticles: ArticleType[] = await Article.find().populate("author");
 
     if (allArticles.length) {
       res.status(200).json({ result: "ok", allArticles });
@@ -112,10 +154,19 @@ async function getAllArticles(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function sendEmail(req: Request, res: Response, next: NextFunction) {
-  const { emailList, url, articleId } = req.body;
+async function sendEmail(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const {
+    emailList,
+    url,
+    articleId,
+  }: { emailList: string[]; url: string; articleId: string } = req.body;
 
-  const article = (await Article.findById(articleId)) as ArticleType;
+  const article: ArticleType = await Article.findById(articleId);
+
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     host: "smtp.gmail.com",
@@ -127,18 +178,20 @@ async function sendEmail(req: Request, res: Response, next: NextFunction) {
     },
   });
 
-  const prevReviewersList = [];
+  const prevReviewersList: string[] = [];
 
   for (const prevReviewer of article.reviewers) {
     prevReviewersList.push(prevReviewer.email);
   }
 
-  const removedReviewersList = prevReviewersList.filter(
+  const removedReviewersList: string[] = prevReviewersList.filter(
     (el) => emailList.indexOf(el) === -1,
   );
 
   for (let i = 0; i < removedReviewersList.length; i++) {
-    const user = await User.findOne({ email: removedReviewersList[i] });
+    const user: UserType = await User.findOne({
+      email: removedReviewersList[i],
+    });
 
     if (user) {
       await User.findByIdAndUpdate(user._id, {
@@ -147,16 +200,21 @@ async function sendEmail(req: Request, res: Response, next: NextFunction) {
     }
   }
 
-  const newReviewersList = [];
+  const newReviewersList: Reviewer[] = [];
 
   for (let i = 0; i < emailList.length; i++) {
-    const reviewerObj = { email: emailList[i], status: "pending" };
+    const reviewerObj: Reviewer = {
+      email: emailList[i],
+      status: "pending",
+    };
 
     newReviewersList.push(reviewerObj);
   }
 
   for (let i = 0; i < newReviewersList.length; i++) {
-    const user = await User.findOne({ email: newReviewersList[i].email });
+    const user: UserType = await User.findOne({
+      email: newReviewersList[i].email,
+    });
 
     if (user) {
       newReviewersList[i].user = user._id;
@@ -171,26 +229,31 @@ async function sendEmail(req: Request, res: Response, next: NextFunction) {
 
   await article.save();
 
-  const sendEmailPromises = emailList.map((emailAddress: string) => {
-    return new Promise((resolve, reject) => {
-      const mailOptions = {
-        from: process.env.EMAIL,
-        to: emailAddress,
-        subject: "Review request",
-        text: `Please review my post. ${url}`,
-      };
+  const sendEmailPromises = emailList.map(
+    (emailAddress: string): Promise<string[]> => {
+      return new Promise((resolve, reject) => {
+        const mailOptions = {
+          from: process.env.EMAIL,
+          to: emailAddress,
+          subject: "Review request",
+          text: `Please review my post. ${url}`,
+        };
 
-      transporter.sendMail(mailOptions, (error: any, info: any) => {
-        if (error) {
-          console.error(`Error sending email to ${emailAddress}: `, error);
-          reject(error);
-        } else {
-          console.error(`Email sent to ${emailAddress}: ` + info.response);
-          resolve(info.response);
-        }
+        transporter.sendMail(
+          mailOptions,
+          (error: Error | null, info: SentMessageInfo) => {
+            if (error) {
+              console.error(`Error sending email to ${emailAddress}: `, error);
+              reject(error);
+            } else {
+              console.error(`Email sent to ${emailAddress}: ` + info.response);
+              resolve(info.response);
+            }
+          },
+        );
       });
-    });
-  });
+    },
+  );
 
   Promise.all(sendEmailPromises)
     .then((responses) => {
@@ -204,11 +267,23 @@ async function sendEmail(req: Request, res: Response, next: NextFunction) {
     });
 }
 
-async function saveReview(req: Request, res: Response, next: NextFunction) {
-  const { articleContent, articleId, commentObj } = req.body;
+async function saveReview(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const {
+    articleContent,
+    articleId,
+    commentObj,
+  }: {
+    articleContent: string;
+    articleId: string;
+    commentObj: CommentObjType;
+  } = req.body;
 
   try {
-    const article = await Article.findById(articleId);
+    const article: ArticleType = await Article.findById(articleId);
     article.editorContent = articleContent;
     article.previewContent = articleContent;
     article.reviewList.push(commentObj);
@@ -221,12 +296,22 @@ async function saveReview(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function deleteReview(req: Request, res: Response, next: NextFunction) {
-  const { articleId, styleId } = req.body;
+async function deleteReview(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const {
+    articleId,
+    styleId,
+  }: {
+    articleId: string;
+    styleId: string;
+  } = req.body;
 
   try {
-    const article = await Article.findById(articleId);
-    const newReviewList = [];
+    const article: ArticleType = await Article.findById(articleId);
+    const newReviewList: CommentObjType[] = [];
 
     for (let i = 0; i < article.reviewList.length; i++) {
       if (article.reviewList[i].styleId !== styleId) {
@@ -235,7 +320,8 @@ async function deleteReview(req: Request, res: Response, next: NextFunction) {
     }
 
     article.reviewList = newReviewList;
-    const cleanedArticle = deleteHighlightedReview(
+
+    const cleanedArticle: string = deleteHighlightedReview(
       article.previewContent,
       styleId,
     );
@@ -245,7 +331,7 @@ async function deleteReview(req: Request, res: Response, next: NextFunction) {
 
     await article.save();
 
-    return res.status(200).send({
+    res.status(200).send({
       result: "ok",
       message: "Successfully deleted comment",
       article,
@@ -256,9 +342,13 @@ async function deleteReview(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function approveArticle(req: Request, res: Response, next: NextFunction) {
-  const { articleId } = req.query;
-  const { user } = req.body;
+async function approveArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const { articleId }: QueryParams = req.query;
+  const { user }: UserStore = req.body;
 
   try {
     await Article.updateOne(
@@ -277,8 +367,16 @@ async function approveArticle(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function publishArticle(req: Request, res: Response, next: NextFunction) {
-  const { articleId } = req.params;
+interface Params {
+  articleId?: string;
+}
+
+async function publishArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const { articleId }: Params = req.params;
 
   try {
     await Article.updateOne(
@@ -295,8 +393,8 @@ async function cancelPublishArticle(
   req: Request,
   res: Response,
   next: NextFunction,
-) {
-  const { articleId } = req.params;
+): Promise<void> {
+  const { articleId }: Params = req.params;
 
   try {
     await Article.updateOne(
