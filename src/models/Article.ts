@@ -17,6 +17,20 @@ const reviewerSchema = new Schema({
   },
 });
 
+const positionSchema = new Schema({
+  top: { type: Number, required: true },
+});
+
+const creatorSchema = new Schema({
+  _id: { type: Schema.Types.ObjectId, required: true },
+  email: { type: String, required: true },
+  photoURL: { type: String, required: true },
+  displayName: { type: String, required: true },
+  authoredArticles: [{ type: Schema.Types.ObjectId, ref: "Article" }],
+  reviewedArticles: [{ type: Schema.Types.ObjectId, ref: "Article" }],
+  refreshToken: { type: String, required: true },
+});
+
 const articleSchema = new Schema({
   title: {
     type: String,
@@ -44,6 +58,8 @@ const articleSchema = new Schema({
       {
         styleId: { type: String, required: true },
         comment: { type: String, required: true },
+        position: { type: positionSchema, required: true },
+        creator: { type: creatorSchema, required: true },
       },
     ],
   },
