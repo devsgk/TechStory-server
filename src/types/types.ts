@@ -7,6 +7,17 @@ export interface Reviewer {
   status: string;
 }
 
+type Position = {
+  top: number;
+};
+
+export interface ReviewList {
+  styleId: string;
+  comment: string;
+  position: Position;
+  creator: UserType;
+}
+
 export interface ArticleType extends Document {
   title: string;
   previewContent: string;
@@ -14,7 +25,7 @@ export interface ArticleType extends Document {
   textContent: string;
   author: string;
   reviewers: Reviewer[];
-  reviewList: { styleId: string; comment: string }[];
+  reviewList: ReviewList[];
   isPublished: boolean;
 }
 
