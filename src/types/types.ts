@@ -2,7 +2,7 @@ import { Document } from "mongoose";
 import { Jwt } from "jsonwebtoken";
 
 export interface Reviewer {
-  user: string;
+  user?: string;
   email: string;
   status: string;
 }
@@ -11,12 +11,12 @@ type Position = {
   top: number;
 };
 
-export interface ReviewList {
+export type CommentObjType = {
   styleId: string;
   comment: string;
   position: Position;
   creator: UserType;
-}
+};
 
 export interface ArticleType extends Document {
   title: string;
@@ -25,7 +25,7 @@ export interface ArticleType extends Document {
   textContent: string;
   author: string;
   reviewers: Reviewer[];
-  reviewList: ReviewList[];
+  reviewList: CommentObjType[];
   isPublished: boolean;
 }
 
@@ -37,6 +37,15 @@ export interface UserType extends Document {
   displayName: string;
   authoredArticles: string[];
   reviewedArticles: string[];
+}
+
+export interface UserStore {
+  identity: string;
+  isLoggedIn: boolean;
+  user: UserType | null;
+  setIdentity: (identity: string) => void;
+  setIsLoggedIn: (isLoggedIn: boolean) => void;
+  setUser: (user: UserType) => void;
 }
 
 export interface JwtPayloadType extends Jwt {
